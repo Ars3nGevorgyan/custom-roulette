@@ -427,6 +427,11 @@
     </style>
 </head>
 <body>
+    <div class="form-group" id="github-token-group">
+        <label for="github-token"><i class="fab fa-github"></i> GitHub Token:</label>
+        <input type="password" id="github-token" placeholder="Введите GitHub Personal Access Token">
+        <p class="password-hint">Нужен токен с разрешением gist. <a href="https://github.com/settings/tokens/new" target="_blank">Создать токен</a></p>
+    </div>
     <a href="https://github.com/your-username/your-repo" class="github-corner" aria-label="View source on GitHub">
         <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#fdbb2d; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
             <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
@@ -830,6 +835,108 @@
             
             // Имитация обновления зрителей
             setInterval(updateViewersCount, 8000);
+        });
+        // Функция сохранения в Gist
+        async function saveToGist(config) {
+            const token = document.getElementById('github-token').value.trim();
+            if (!token) {
+                throw new Error('Введите GitHub Token');
+            }
+            
+            const response = await fetch('https://api.github.com/gists', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    description: "Конфигурация рулетки",
+                    public: true,
+                    files: {
+                        "roulette.json": {
+                            content: JSON.stringify(config)
+                        }
+                    }
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Ошибка сохранения');
+            }
+            
+            const data = await response.json();
+            return data.id;
+        }
+        
+        // Функция загрузки из Gist
+        async function loadFromGist(gistId) {
+            const response = await fetch(`https://api.github.com/gists/${gistId}`);
+            if (!response.ok) {
+                throw new Error('Рулетка не найдена');
+            }
+            
+            const data = await response.json();
+            return JSON.parse(data.files['roulette.json'].content);
+        }
+        
+        // Модифицируем создание рулетки
+        createRouletteBtn.addEventListener('click', async () => {
+            if (sectors.length < 2) {
+                showMessage('Добавьте как минимум 2 сектора', 'error');
+                return;
+            }
+            
+            const config = {
+                sectors: sectors,
+                centerText: centerTextInput.value,
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                const gistId = await saveToGist(config);
+                rouletteId = gistId;
+                
+                const shareUrl = `${window.location.origin}${window.location.pathname}?gist=${gistId}`;
+                shareLinkInput.value = shareUrl;
+                
+                isCreator = true;
+                centerTextDisplay.textContent = centerTextInput.value;
+                initRoulette();
+                spinBtn.classList.remove('hidden');
+                shareSection.classList.remove('hidden');
+                
+                resultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Рулетка создана! Отправьте ссылку друзьям`;
+                resultDiv.style.background = 'rgba(0, 200, 83, 0.3)';
+            } catch (error) {
+                showMessage(`Ошибка: ${error.message}`, 'error');
+            }
+        });
+        
+        // Модифицируем загрузку
+        window.addEventListener('load', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gistId = urlParams.get('gist');
+            
+            if (gistId) {
+                try {
+                    const config = await loadFromGist(gistId);
+                    sectors = config.sectors;
+                    centerTextDisplay.textContent = config.centerText;
+                    
+                    initRoulette();
+                    spinBtn.classList.add('hidden');
+                    
+                    resultDiv.innerHTML = `<i class="fas fa-info-circle"></i> Рулетка загружена. Ожидание запуска...`;
+                    resultDiv.style.background = 'rgba(33, 150, 243, 0.3)';
+                } catch (error) {
+                    resultDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${error.message}`;
+                    resultDiv.style.background = 'rgba(213, 0, 0, 0.3)';
+                }
+            } else {
+                // Режим создания
+                sectorNameInput.focus();
+                renderSectorsList();
+            }
         });
     </script>
 </body>
