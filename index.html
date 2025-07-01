@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настраиваемая Рулетка</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #fdbb2d;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #fdbb2d, #b21f1f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            min-height: 600px;
+        }
+        
+        .setup-section {
+            flex: 1;
+            min-width: 350px;
+            padding: 30px;
+            background: rgba(26, 42, 108, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-section {
+            flex: 2;
+            min-width: 450px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+        }
+        
+        .section-title {
+            margin-bottom: 20px;
+            color: #fdbb2d;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sector-controls {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #fdbb2d;
+            font-size: 1.1rem;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            border: 2px solid rgba(253, 187, 45, 0.3);
+            transition: all 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #fdbb2d;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(253, 187, 45, 0.5);
+        }
+        
+        button {
+            padding: 14px 25px;
+            background: linear-gradient(to right, #fdbb2d, #b21f1f);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 7px 20px rgba(178, 31, 31, 0.5);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, #1a2a6c, #2a4ab9);
+        }
+        
+        .btn-success {
+            background: linear-gradient(to right, #00c853, #007a29);
+        }
+        
+        .sectors-list {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .sector-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+        
+        .sector-color {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        
+        .sector-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .delete-btn {
+            background: #d32f2f;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            width: auto;
+        }
+        
+        .roulette-container {
+            position: relative;
+            width: 450px;
+            height: 450px;
+            margin: 0 auto 40px;
+        }
+        
+        .roulette-wheel {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border-radius: 50%;
+            background: #0d0d0d;
+            box-shadow: 0 0 0 12px #333, 0 0 0 17px #fdbb2d, 0 0 40px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        
+        .roulette-section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            overflow: hidden;
+        }
+        
+        .sector-text {
+            transform: rotate(45deg);
+            text-align: center;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .roulette-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: #fdbb2d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            box-shadow: 0 0 20px rgba(253, 187, 45, 0.8);
+            font-weight: bold;
+            color: #1a1a1a;
+            text-align: center;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .roulette-pointer {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 60px;
+            background: #fdbb2d;
+            border-radius: 50% 50% 0 0;
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(253, 187, 45, 0.8);
+        }
+        
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .spin-btn {
+            width: 250px;
+            padding: 16px;
+            font-size: 1.2rem;
+        }
+        
+        .result {
+            margin-top: 20px;
+            font-size: 1.6rem;
+            text-align: center;
+            min-height: 60px;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 2px solid #fdbb2d;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .history {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+        
+        .history-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #fdbb2d;
+            font-size: 1.3rem;
+        }
+        
+        .history-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .history-item {
+            background: rgba(178, 31, 31, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            background: rgba(178, 31, 31, 0.3);
+            font-size: 1.1rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .password-hint {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1rem;
+            color: #aaa;
+            padding: 10px;
+        }
+        
+        .share-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(26, 42, 108, 0.3);
+            border-radius: 15px;
+        }
+        
+        .share-link {
+            display: flex;
+            margin-top: 15px;
+        }
+        
+        .share-link input {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            margin-right: -2px;
+        }
+        
+        .copy-btn {
+            width: auto;
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            padding: 14px;
+        }
+        
+        .viewers-count {
+            margin-top: 20px;
+            text-align: center;
+            color: #fdbb2d;
+            font-weight: bold;
+            font-size: 1.3rem;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+        }
+        
+        .github-corner {
+            position: absolute;
+            top: 0;
+            right: 0;
+            border: 0;
+            z-index: 1000;
+        }
+        
+        @media (max-width: 1000px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .setup-section, .game-section {
+                min-width: 100%;
+            }
+            
+            .roulette-container {
+                width: 350px;
+                height: 350px;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .roulette-container {
+                width: 280px;
+                height: 280px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="https://github.com/your-username/your-repo" class="github-corner" aria-label="View source on GitHub">
+        <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#fdbb2d; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
+            <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+            <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+            <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>
+        </svg>
+    </a>
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-dice"></i> Настраиваемая Рулетка</h1>
+            <p>Создайте свою рулетку и поделитесь с друзьями через GitHub Pages</p>
+        </header>
+        
+        <div class="content">
+            <section class="setup-section">
+                <h2 class="section-title"><i class="fas fa-cog"></i> Настройка рулетки</h2>
+                
+                <div class="sector-controls">
+                    <div class="form-group">
+                        <label for="sector-name"><i class="fas fa-tag"></i> Название сектора:</label>
+                        <input type="text" id="sector-name" placeholder="Например: iPhone 15">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sector-reward"><i class="fas fa-gift"></i> Награда (опционально):</label>
+                        <input type="text" id="sector-reward" placeholder="Например: Золотая медаль">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sector-color"><i class="fas fa-palette"></i> Цвет сектора:</label>
+                        <select id="sector-color">
+                            <option value="#FF5252">Красный</option>
+                            <option value="#2196F3">Синий</option>
+                            <option value="#4CAF50">Зеленый</option>
+                            <option value="#FFC107">Желтый</option>
+                            <option value="#9C27B0">Фиолетовый</option>
+                            <option value="#00BCD4">Бирюзовый</option>
+                            <option value="#FF9800">Оранжевый</option>
+                        </select>
+                    </div>
+                    
+                    <button id="add-sector-btn"><i class="fas fa-plus"></i> Добавить сектор</button>
+                </div>
+                
+                <div class="sectors-list">
+                    <h3 class="section-title"><i class="fas fa-list"></i> Список секторов:</h3>
+                    <div id="sectors-container">
+                        <div class="empty-list">Добавьте секторы для вашей рулетки</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="center-text"><i class="fas fa-bullseye"></i> Текст в центре рулетки:</label>
+                    <textarea id="center-text" rows="2" placeholder="Например: Главный приз!">Супер призы!</textarea>
+                </div>
+                
+                <button id="create-roulette-btn" class="btn-secondary"><i class="fas fa-check"></i> Создать рулетку</button>
+                
+                <div class="share-section hidden" id="share-section">
+                    <h3 class="section-title"><i class="fas fa-share-alt"></i> Поделиться рулеткой</h3>
+                    <p>Отправьте эту ссылку вашим друзьям:</p>
+                    <div class="share-link">
+                        <input type="text" id="share-link" readonly>
+                        <button class="copy-btn" id="copy-link-btn"><i class="fas fa-copy"></i> Копировать</button>
+                    </div>
+                    <div class="password-hint">
+                        <p><i class="fas fa-info-circle"></i> Только вы (создатель) можете вращать рулетку. Зрители видят результат в реальном времени.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="game-section">
+                <div class="roulette-container">
+                    <div class="roulette-pointer"></div>
+                    <div class="roulette-wheel" id="roulette-wheel">
+                        <!-- Секции рулетки будут сгенерированы через JS -->
+                    </div>
+                    <div class="roulette-center" id="center-text-display">Супер призы!</div>
+                </div>
+                
+                <div class="controls">
+                    <button class="spin-btn hidden" id="spin-btn"><i class="fas fa-sync"></i> Крутить рулетку!</button>
+                    <div class="result" id="result">Ожидание запуска рулетки...</div>
+                </div>
+                
+                <div class="history">
+                    <div class="history-title"><i class="fas fa-history"></i> История победителей:</div>
+                    <div class="history-items" id="history-items">
+                        <div class="history-item">Елена - iPhone 15</div>
+                        <div class="history-item">Алексей - Золотая медаль</div>
+                        <div class="history-item">Мария - 5000 руб</div>
+                    </div>
+                </div>
+                
+                <div class="viewers-count">
+                    <i class="fas fa-users"></i> Смотрят сейчас: <span id="viewers-count">12</span> человек
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // Элементы DOM
+        const sectorNameInput = document.getElementById('sector-name');
+        const sectorRewardInput = document.getElementById('sector-reward');
+        const sectorColorInput = document.getElementById('sector-color');
+        const addSectorBtn = document.getElementById('add-sector-btn');
+        const sectorsContainer = document.getElementById('sectors-container');
+        const centerTextInput = document.getElementById('center-text');
+        const createRouletteBtn = document.getElementById('create-roulette-btn');
+        const shareSection = document.getElementById('share-section');
+        const shareLinkInput = document.getElementById('share-link');
+        const copyLinkBtn = document.getElementById('copy-link-btn');
+        const rouletteWheel = document.getElementById('roulette-wheel');
+        const centerTextDisplay = document.getElementById('center-text-display');
+        const spinBtn = document.getElementById('spin-btn');
+        const resultDiv = document.getElementById('result');
+        const historyItems = document.getElementById('history-items');
+        const viewersCount = document.getElementById('viewers-count');
+        
+        // Состояние приложения
+        let sectors = [];
+        let isCreator = false;
+        let rouletteId = null;
+        let isSpinning = false;
+        let spinResult = null;
+        let viewerMode = false;
+        
+        // Добавление сектора
+        addSectorBtn.addEventListener('click', () => {
+            const name = sectorNameInput.value.trim();
+            const reward = sectorRewardInput.value.trim() || 'Без награды';
+            const color = sectorColorInput.value;
+            
+            if (!name) {
+                showMessage('Пожалуйста, введите название сектора', 'error');
+                return;
+            }
+            
+            // Добавляем сектор в массив
+            const sector = {
+                id: Date.now(),
+                name,
+                reward,
+                color
+            };
+            
+            sectors.push(sector);
+            renderSectorsList();
+            
+            // Очищаем поля ввода
+            sectorNameInput.value = '';
+            sectorRewardInput.value = '';
+            sectorNameInput.focus();
+            
+            showMessage(`Сектор "${name}" добавлен!`, 'success');
+        });
+        
+        // Удаление сектора
+        function deleteSector(id) {
+            sectors = sectors.filter(sector => sector.id !== id);
+            renderSectorsList();
+        }
+        
+        // Отображение списка секторов
+        function renderSectorsList() {
+            sectorsContainer.innerHTML = '';
+            
+            if (sectors.length === 0) {
+                sectorsContainer.innerHTML = '<div class="empty-list">Добавьте секторы для вашей рулетки</div>';
+                return;
+            }
+            
+            sectors.forEach(sector => {
+                const sectorEl = document.createElement('div');
+                sectorEl.className = 'sector-item';
+                sectorEl.style.borderLeftColor = sector.color;
+                sectorEl.innerHTML = `
+                    <div>
+                        <span class="sector-color" style="background:${sector.color}"></span>
+                        <strong>${sector.name}</strong> - ${sector.reward}
+                    </div>
+                    <div class="sector-actions">
+                        <button class="delete-btn" onclick="deleteSector(${sector.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                sectorsContainer.appendChild(sectorEl);
+            });
+        }
+        
+        // Показать сообщение
+        function showMessage(text, type = 'info') {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i> ${text}`;
+            
+            const existingMessage = document.querySelector('.message');
+            if (existingMessage) existingMessage.remove();
+            
+            document.querySelector('.setup-section').appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 3000);
+        }
+        
+        // Создание рулетки
+        createRouletteBtn.addEventListener('click', () => {
+            if (sectors.length < 2) {
+                showMessage('Добавьте как минимум 2 сектора', 'error');
+                return;
+            }
+            
+            // Генерируем уникальный ID рулетки
+            rouletteId = 'roulette_' + Math.random().toString(36).substr(2, 9);
+            
+            // Сохраняем конфигурацию в localStorage
+            const config = {
+                sectors,
+                centerText: centerTextInput.value,
+                createdAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem(rouletteId, JSON.stringify(config));
+            
+            // Помечаем пользователя как создателя
+            isCreator = true;
+            
+            // Обновляем интерфейс
+            centerTextDisplay.textContent = centerTextInput.value;
+            initRoulette();
+            spinBtn.classList.remove('hidden');
+            
+            // Показываем секцию для поделиться
+            shareSection.classList.remove('hidden');
+            
+            // Генерируем ссылку для просмотра
+            const shareUrl = `${window.location.origin}${window.location.pathname}?id=${rouletteId}`;
+            shareLinkInput.value = shareUrl;
+            
+            // Сообщение об успешном создании
+            resultDiv.innerHTML = `<i class="fas fa-check-circle"></i> Рулетка создана! Отправьте ссылку друзьям`;
+            resultDiv.style.background = 'rgba(0, 200, 83, 0.3)';
+            
+            showMessage('Рулетка успешно создана!', 'success');
+        });
+        
+        // Копирование ссылки
+        copyLinkBtn.addEventListener('click', () => {
+            shareLinkInput.select();
+            document.execCommand('copy');
+            
+            const originalText = copyLinkBtn.innerHTML;
+            copyLinkBtn.innerHTML = '<i class="fas fa-check"></i> Скопировано!';
+            
+            setTimeout(() => {
+                copyLinkBtn.innerHTML = originalText;
+            }, 2000);
+        });
+        
+        // Инициализация рулетки
+        function initRoulette() {
+            rouletteWheel.innerHTML = '';
+            
+            if (sectors.length === 0) {
+                // Загружаем конфигурацию из URL, если есть
+                const urlParams = new URLSearchParams(window.location.search);
+                const id = urlParams.get('id');
+                
+                if (id) {
+                    const savedConfig = localStorage.getItem(id);
+                    if (savedConfig) {
+                        const config = JSON.parse(savedConfig);
+                        sectors = config.sectors;
+                        centerTextDisplay.textContent = config.centerText;
+                        viewerMode = true;
+                    }
+                }
+            }
+            
+            const count = sectors.length;
+            const angle = 360 / count;
+            
+            sectors.forEach((sector, index) => {
+                const section = document.createElement('div');
+                section.className = 'roulette-section';
+                section.style.backgroundColor = sector.color;
+                
+                // Позиционирование сектора
+                const rotate = angle * index;
+                const skew = 90 - angle;
+                section.style.transform = `rotate(${rotate}deg) skewY(${skew}deg)`;
+                
+                // Добавляем текст сектора
+                const textEl = document.createElement('div');
+                textEl.className = 'sector-text';
+                textEl.textContent = sector.name;
+                section.appendChild(textEl);
+                
+                rouletteWheel.appendChild(section);
+            });
+        }
+        
+        // Вращение рулетки
+        function spinRoulette() {
+            if (isSpinning || !isCreator) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            resultDiv.textContent = "Рулетка вращается...";
+            resultDiv.style.background = 'rgba(255, 255, 255, 0.1)';
+            
+            // Генерация случайного угла (несколько полных оборотов + случайный сектор)
+            const spinAngle = 1800 + Math.floor(Math.random() * 360);
+            
+            // Применение вращения
+            rouletteWheel.style.transform = `rotate(${spinAngle}deg)`;
+            
+            // Расчет выигрышного сектора
+            setTimeout(() => {
+                const count = sectors.length;
+                const sectionAngle = 360 / count;
+                const normalizedAngle = spinAngle % 360;
+                const winningIndex = Math.floor(normalizedAngle / sectionAngle);
+                const winningSector = sectors[count - 1 - winningIndex];
+                
+                // Сохраняем результат
+                spinResult = winningSector;
+                
+                // Отображение результата
+                resultDiv.innerHTML = `
+                    <div style="text-align:center;">
+                        <div style="font-size:1.8rem; margin-bottom:10px;"><i class="fas fa-trophy"></i> Победитель!</div>
+                        <div style="font-weight:bold; font-size:1.4rem;">${winningSector.name}</div>
+                        <div>${winningSector.reward}</div>
+                    </div>
+                `;
+                resultDiv.style.background = 'rgba(0, 200, 83, 0.3)';
+                
+                // Добавляем в историю
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.textContent = `${winningSector.name} - ${winningSector.reward}`;
+                historyItem.style.background = `rgba(${parseInt(winningSector.color.slice(1, 3), 16)}, ${parseInt(winningSector.color.slice(3, 5), 16)}, ${parseInt(winningSector.color.slice(5, 7), 16)}, 0.4)`;
+                historyItems.prepend(historyItem);
+                
+                // Обновляем счетчик зрителей
+                updateViewersCount();
+                
+                isSpinning = false;
+                spinBtn.disabled = false;
+            }, 4000);
+        }
+        
+        // Обновление счетчика зрителей
+        function updateViewersCount() {
+            const currentCount = parseInt(viewersCount.textContent);
+            const increment = Math.floor(Math.random() * 3) + 1;
+            viewersCount.textContent = currentCount + increment;
+        }
+        
+        // Обработчик вращения рулетки
+        spinBtn.addEventListener('click', spinRoulette);
+        
+        // Инициализация при загрузке
+        window.addEventListener('load', () => {
+            // Проверяем параметры URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            
+            if (id) {
+                // Режим зрителя
+                const savedConfig = localStorage.getItem(id);
+                if (savedConfig) {
+                    const config = JSON.parse(savedConfig);
+                    sectors = config.sectors;
+                    centerTextDisplay.textContent = config.centerText;
+                    
+                    // Инициализируем рулетку
+                    initRoulette();
+                    
+                    // Скрываем кнопку вращения
+                    spinBtn.classList.add('hidden');
+                    
+                    // Показываем сообщение
+                    resultDiv.innerHTML = `<i class="fas fa-info-circle"></i> Ожидание запуска рулетки создателем`;
+                    resultDiv.style.background = 'rgba(33, 150, 243, 0.3)';
+                    
+                    // Обновляем счетчик
+                    updateViewersCount();
+                } else {
+                    resultDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Рулетка не найдена`;
+                    resultDiv.style.background = 'rgba(213, 0, 0, 0.3)';
+                }
+            } else {
+                // Режим создания
+                sectorNameInput.focus();
+                renderSectorsList();
+            }
+            
+            // Имитация обновления зрителей
+            setInterval(updateViewersCount, 8000);
+        });
+    </script>
+</body>
+</html>
